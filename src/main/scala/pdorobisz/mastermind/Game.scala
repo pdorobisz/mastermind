@@ -1,7 +1,9 @@
 package pdorobisz.mastermind
 
+import scala.util.Random
 
-class Game(val colors: Seq[Char], val turn: Int) {
+
+class Game(val colors: Seq[Char], val config: GameConfig, val turn: Int) {
 
   def guess(guessColors: Seq[Char]): Answer = {
     val newTurn: Int = turn + 1
@@ -19,7 +21,11 @@ class Game(val colors: Seq[Char], val turn: Int) {
 
 object Game {
 
-  def apply(colors: Seq[Char], turn: Int): Game = new Game(colors: Seq[Char], turn: Int)
+  def apply(colors: Seq[Char], config: GameConfig, turn: Int): Game = new Game(colors, config, turn)
 
-  def init(colors: Seq[Char]): Game = new Game(colors, 0)
+  def init(config: GameConfig): Game = new Game(generateColors(config), config, 0)
+
+  private def generateColors(config: GameConfig): Seq[Char] = {
+    Seq.fill(config.length)(('A' + Random.nextInt(config.numberOfColors)).toChar)
+  }
 }

@@ -9,23 +9,24 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   private val TURN = 5
 
   "Game" should "be correctly initialized" in {
-    Given("intial parameters")
-    val colors = List('a', 'b', 'c', 'd')
+    Given("configuration")
+    val config = GameConfig(4, 5)
 
-    When("game is initialized")
-    val game = Game.init(colors)
+    When("game is initialized with this configuration")
+    val game = Game.init(config)
 
     Then("new game should be created")
-    assert(colors === game.colors)
+    assert(config.length === game.colors.size)
+    assert(game.colors.max <= 'A' + config.numberOfColors)
     assert(0 === game.turn)
   }
 
   it should "return correct result when successful guess" in {
     Given("initialized game")
     val colors = List('a', 'b', 'a', 'c', 'c', 'd', 'a')
-    val game = Game(colors, TURN)
+    val game = Game(colors, createConfigFromColors(colors), TURN)
 
-    When("guess is invoked with correct colors")
+    When("colors are guessed")
     val result = game.guess(colors)
 
     Then("success result should be returned")
@@ -46,7 +47,10 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   forAll(incorrectGuesses) {
     (colors: Seq[Char], guess: Seq[Char], expected: Answer) =>
       it should s"return $expected for $colors when guess is $guess" in {
-        assert(expected === Game(colors, TURN).guess(guess))
+        val config: GameConfig = createConfigFromColors(colors)
+        assert(expected === Game(colors, config, TURN).guess(guess))
       }
   }
+
+  private def createConfigFromColors(colors: Seq[Char]): GameConfig = GameConfig(colors.size, colors.max - 'A')
 }
