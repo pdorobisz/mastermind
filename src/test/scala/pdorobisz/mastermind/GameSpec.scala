@@ -46,6 +46,18 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     assert(IllegalArguments(0) === result)
   }
 
+  it should "return correct result when wrong number of colors is passed" in {
+    Given("initialized game")
+    val config = GameConfig(4, 6)
+    val game = Game.init(config)
+
+    When("too many colors are passed")
+    val result = game.guess(Seq.fill(config.length + 1)('A'))
+
+    Then("IllegalArguments should be returned")
+    assert(IllegalArguments(0) === result)
+  }
+
   val incorrectGuesses = Table(
     ("colors", "guess", "expected"),
     (List('a', 'b', 'a'), List('a', 'a', 'a'), Incorrect(TURN + 1, 2, 0)),

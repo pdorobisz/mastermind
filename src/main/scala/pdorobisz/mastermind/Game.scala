@@ -6,7 +6,7 @@ import scala.util.Random
 class Game(val colors: Seq[Char], val config: GameConfig, val turn: Int) {
 
   def guess(guessColors: Seq[Char]): Answer = {
-    if (guessColors.find(_ > 'A' + config.numberOfColors - 1).nonEmpty) {
+    if (!validateColors(guessColors) || !validateLength(guessColors)) {
       return IllegalArguments(turn)
     }
 
@@ -21,6 +21,11 @@ class Game(val colors: Seq[Char], val config: GameConfig, val turn: Int) {
       Incorrect(newTurn, posOk, colorOk)
     }
   }
+
+  private def validateColors(guessColors: Seq[Char]): Boolean =
+    guessColors.find(_ > 'A' + config.numberOfColors - 1).isEmpty
+
+  private def validateLength(guessColors: Seq[Char]): Boolean = guessColors.size == colors.size
 }
 
 object Game {
@@ -29,7 +34,6 @@ object Game {
 
   def init(config: GameConfig): Game = new Game(generateColors(config), config, 0)
 
-  private def generateColors(config: GameConfig): Seq[Char] = {
+  private def generateColors(config: GameConfig): Seq[Char] =
     Seq.fill(config.length)(('A' + Random.nextInt(config.numberOfColors)).toChar)
-  }
 }
