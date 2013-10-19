@@ -33,6 +33,19 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     assert(Success(TURN + 1) === result)
   }
 
+  it should "return correct result when invalid colors are passed" in {
+    Given("initialized game")
+    val config = GameConfig(4, 6)
+    val game = Game.init(config)
+
+    When("invalid colors are passed")
+    val invalidGuess = Seq.fill(config.length)(('A' + config.numberOfColors).toChar)
+    val result = game.guess(invalidGuess)
+
+    Then("IllegalArguments should be returned")
+    assert(IllegalArguments(0) === result)
+  }
+
   val incorrectGuesses = Table(
     ("colors", "guess", "expected"),
     (List('a', 'b', 'a'), List('a', 'a', 'a'), Incorrect(TURN + 1, 2, 0)),
@@ -47,10 +60,10 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   forAll(incorrectGuesses) {
     (colors: Seq[Char], guess: Seq[Char], expected: Answer) =>
       it should s"return $expected for $colors when guess is $guess" in {
-        val config: GameConfig = createConfigFromColors(colors)
+        val config = GameConfig(colors.size, (colors.max max guess.max) + 1 - 'A')
         assert(expected === Game(colors, config, TURN).guess(guess))
       }
   }
 
-  private def createConfigFromColors(colors: Seq[Char]): GameConfig = GameConfig(colors.size, colors.max - 'A')
+  private def createConfigFromColors(colors: Seq[Char]): GameConfig = GameConfig(colors.size, colors.max + 1 - 'A')
 }
