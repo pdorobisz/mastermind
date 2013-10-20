@@ -33,6 +33,20 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     assert(Success(TURN + 1) === result)
   }
 
+  it should "increment turn number after guess" in {
+    Given("initialized game")
+    val colors = List('a', 'b', 'c', 'd')
+    val repeat = 3
+    val game = Game(colors, createConfigFromColors(colors), TURN)
+
+    When("colors are guessed few times")
+    val wrongColors = List('a', 'a', 'a', 'a')
+    1 to repeat foreach (_ => game.guess(wrongColors))
+
+    Then("turn number should be increased by number of guesses")
+    assert(TURN + repeat === game.turn)
+  }
+
   it should "return correct result when invalid colors are passed" in {
     Given("initialized game")
     val config = GameConfig(4, 6)
