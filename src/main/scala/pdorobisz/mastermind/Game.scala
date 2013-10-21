@@ -3,7 +3,7 @@ package pdorobisz.mastermind
 import scala.util.Random
 
 
-class Game(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
+class Game private(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
 
   val colors = _colors.map(_.toUpper)
 
