@@ -7,10 +7,11 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyChecks {
 
   private val TURN = 5
+  private val GUESS_LIMIT = TURN * 2
 
   "Game" should "be correctly initialized" in {
     Given("configuration")
-    val config = GameConfig(4, 5).get
+    val config = GameConfig(4, 5, GUESS_LIMIT).get
 
     When("game is initialized with this configuration")
     val game = Game.init(config)
@@ -59,9 +60,22 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     assert(TURN + repeat === game.turn)
   }
 
+  it should "finish game when maximum number of guesses reached" in {
+    Given("initialized game with turn number set to guessLimit - 1")
+    val colors = List('A', 'B', 'C', 'D')
+    val game = Game(colors, createConfigFromColors(colors), GUESS_LIMIT - 1)
+
+    When("incorrect colors are guessed")
+    val wrongColors = List('A', 'A', 'A', 'A')
+    val result = game.guess(wrongColors)
+
+    Then("turn number should be increased by number of guesses")
+    assert(GameOver(GUESS_LIMIT) === result)
+  }
+
   it should "return correct result when invalid colors are passed" in {
     Given("initialized game")
-    val config = GameConfig(4, 6).get
+    val config = GameConfig(4, 6, GUESS_LIMIT).get
     val game = Game.init(config)
 
     When("invalid colors are passed")
@@ -74,7 +88,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
 
   it should "return correct result when wrong number of colors is passed" in {
     Given("initialized game")
-    val config = GameConfig(4, 6).get
+    val config = GameConfig(4, 6, GUESS_LIMIT).get
     val game = Game.init(config)
 
     When("too many colors are passed")
@@ -98,11 +112,11 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   forAll(incorrectGuesses) {
     (colors: Seq[Char], guess: Seq[Char], expected: Answer) =>
       it should s"return $expected for $colors when guess is $guess" in {
-        val config = GameConfig(colors.size, (colors.max max guess.max) + 1 - 'A').get
+        val config = GameConfig(colors.size, (colors.max max guess.max) + 1 - 'A', GUESS_LIMIT).get
         assert(expected === Game(colors, config, TURN).guess(guess))
       }
   }
 
   private def createConfigFromColors(colors: Seq[Char]): GameConfig =
-    GameConfig(colors.size, colors.max + 1 - GameConfig.FIRST_COLOR).get
+    GameConfig(colors.size, colors.max + 1 - GameConfig.FIRST_COLOR, GUESS_LIMIT).get
 }

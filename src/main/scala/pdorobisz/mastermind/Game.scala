@@ -9,6 +9,7 @@ class Game(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
 
   def guess(guessColors: Seq[Char]): Answer = {
     val guessColors1 = guessColors.map(_.toUpper)
+
     if (!validateColors(guessColors1) || !validateLength(guessColors1)) {
       return IllegalArguments(_turn)
     }
@@ -18,7 +19,10 @@ class Game(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
 
     if (remainingGuessColors.size == 0) {
       Success(_turn)
-    } else {
+    } else if (_turn != GameConfig.NO_GUESS_LIMIT && _turn == config.guessLimit) {
+      GameOver(_turn)
+    }
+    else {
       val posOk: Int = guessColors1.size - remainingGuessColors.size
       val colorOk: Int = remainingColors.size - remainingColors.diff(remainingGuessColors).size
       Incorrect(_turn, posOk, colorOk)
