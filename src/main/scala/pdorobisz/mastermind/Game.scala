@@ -6,11 +6,14 @@ import scala.util.Random
 class Game private(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
 
   val colors = _colors.map(_.toUpper)
+  private var finished = false
 
   def guess(guessColors: Seq[Char]): Answer = {
     val guessColors1 = guessColors.map(_.toUpper)
 
-    if (!validateColors(guessColors1) || !validateLength(guessColors1)) {
+    if (finished) {
+      return Finished(_turn)
+    } else if (!validateColors(guessColors1) || !validateLength(guessColors1)) {
       return IllegalArguments(_turn)
     }
 
@@ -18,11 +21,12 @@ class Game private(_colors: Seq[Char], val config: GameConfig, private var _turn
     val (remainingColors, remainingGuessColors) = colors.zip(guessColors1).filter { case (x, y) => x != y }.unzip
 
     if (remainingGuessColors.size == 0) {
+      finished = true
       Success(_turn)
     } else if (_turn != GameConfig.NO_GUESS_LIMIT && _turn == config.guessLimit) {
+      finished = true
       GameOver(_turn)
-    }
-    else {
+    } else {
       val posOk: Int = guessColors1.size - remainingGuessColors.size
       val colorOk: Int = remainingColors.size - remainingColors.diff(remainingGuessColors).size
       Incorrect(_turn, posOk, colorOk)

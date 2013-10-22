@@ -69,8 +69,37 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     val wrongColors = List('A', 'A', 'A', 'A')
     val result = game.guess(wrongColors)
 
-    Then("turn number should be increased by number of guesses")
+    Then("GameOver should be returned")
     assert(GameOver(GUESS_LIMIT) === result)
+  }
+
+  it should "not accept new guesses when game is finished with success" in {
+    Given("game finished with success")
+    val colors = List('A', 'B', 'C', 'D')
+    val game = Game(colors, createConfigFromColors(colors), TURN)
+    val result1 = game.guess(colors)
+
+    When("colors are guessed after finishing game")
+    val result2 = game.guess(colors)
+
+    Then("Finished should be returned")
+    assert(Success(TURN + 1) === result1)
+    assert(Finished(TURN + 1) === result2)
+  }
+
+  it should "not accept new guesses when game is lost" in {
+    Given("lost game")
+    val colors = List('A', 'B', 'C', 'D')
+    val wrongColors = List('A', 'A', 'A', 'A')
+    val game = Game(colors, createConfigFromColors(colors), GUESS_LIMIT - 1)
+    val result1 = game.guess(wrongColors)
+
+    When("colors are guessed after finishing game")
+    val result2 = game.guess(colors)
+
+    Then("Finished should be returned")
+    assert(GameOver(GUESS_LIMIT) === result1)
+    assert(Finished(GUESS_LIMIT) === result2)
   }
 
   it should "return correct result when invalid colors are passed" in {

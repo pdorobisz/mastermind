@@ -2,6 +2,8 @@ package pdorobisz.mastermind
 
 sealed trait Answer
 
+case class Finished(turn: Int) extends Answer
+
 case class GameOver(turn: Int) extends Answer
 
 case class IllegalArguments(turn: Int) extends Answer
