@@ -43,9 +43,35 @@ class Game private(_colors: Seq[Char], val config: GameConfig, private var _turn
 
 object Game {
 
-  def apply(colors: Seq[Char], config: GameConfig, turn: Int): Game = new Game(colors, config, turn)
-
+  /**
+   * Initialized new game.
+   *
+   * @param config game config
+   * @return game object
+   */
   def init(config: GameConfig): Game = new Game(generateColors(config), config, 0)
+
+
+  /**
+   * Restores game state.
+   *
+   * @param colors colors to guess
+   * @param config game config
+   * @param turn current turn
+   * @return game object
+   */
+  def restore(colors: Seq[Char], config: GameConfig, turn: Int): Option[Game] =
+    if (validateTurn(turn, config.guessLimit) && validateColors(colors, config)) {
+      Some(new Game(colors, config, turn))
+    } else {
+      None
+    }
+
+  private def validateTurn(turn: Int, guessLimit: Int) =
+    turn >= 0 && (guessLimit == GameConfig.NO_GUESS_LIMIT || turn < guessLimit)
+
+  private def validateColors(chars: Seq[Char], config: GameConfig): Boolean =
+    chars.size == config.length && chars.forall(c => c >= GameConfig.FIRST_COLOR && c - GameConfig.FIRST_COLOR < config.numberOfColors)
 
   private def generateColors(config: GameConfig): Seq[Char] =
     Seq.fill(config.length)((GameConfig.FIRST_COLOR + Random.nextInt(config.numberOfColors)).toChar)

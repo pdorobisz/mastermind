@@ -25,7 +25,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   it should "return correct result when successful guess" in {
     Given("initialized game")
     val colors = List('A', 'B', 'A', 'C', 'C', 'D', 'A')
-    val game = Game(colors, createConfigFromColors(colors), TURN)
+    val game = Game.restore(colors, createConfigFromColors(colors), TURN).get
 
     When("colors are guessed")
     val result = game.guess(colors)
@@ -37,7 +37,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   it should "ignore characters case" in {
     Given("initialized game")
     val colors = List('A', 'B', 'C', 'D')
-    val game = Game(colors, createConfigFromColors(colors), TURN)
+    val game = Game.restore(colors, createConfigFromColors(colors), TURN).get
 
     When("some colors but with different case are passed")
     val result = game.guess(colors.map(_.toLower))
@@ -50,7 +50,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     Given("initialized game")
     val colors = List('A', 'B', 'C', 'D')
     val repeat = 3
-    val game = Game(colors, createConfigFromColors(colors), TURN)
+    val game = Game.restore(colors, createConfigFromColors(colors), TURN).get
 
     When("colors are guessed few times")
     val wrongColors = List('A', 'A', 'A', 'A')
@@ -63,7 +63,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   it should "finish game when maximum number of guesses reached" in {
     Given("initialized game with turn number set to guessLimit - 1")
     val colors = List('A', 'B', 'C', 'D')
-    val game = Game(colors, createConfigFromColors(colors), GUESS_LIMIT - 1)
+    val game = Game.restore(colors, createConfigFromColors(colors), GUESS_LIMIT - 1).get
 
     When("incorrect colors are guessed")
     val wrongColors = List('A', 'A', 'A', 'A')
@@ -76,7 +76,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   it should "not accept new guesses when game is finished with success" in {
     Given("game finished with success")
     val colors = List('A', 'B', 'C', 'D')
-    val game = Game(colors, createConfigFromColors(colors), TURN)
+    val game = Game.restore(colors, createConfigFromColors(colors), TURN).get
     val result1 = game.guess(colors)
 
     When("colors are guessed after finishing game")
@@ -91,7 +91,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     Given("lost game")
     val colors = List('A', 'B', 'C', 'D')
     val wrongColors = List('A', 'A', 'A', 'A')
-    val game = Game(colors, createConfigFromColors(colors), GUESS_LIMIT - 1)
+    val game = Game.restore(colors, createConfigFromColors(colors), GUESS_LIMIT - 1).get
     val result1 = game.guess(wrongColors)
 
     When("colors are guessed after finishing game")
@@ -142,7 +142,26 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     (colors: Seq[Char], guess: Seq[Char], expected: Answer) =>
       it should s"return $expected for $colors when guess is $guess" in {
         val config = GameConfig(colors.size, (colors.max max guess.max) + 1 - 'A', GUESS_LIMIT).get
-        assert(expected === Game(colors, config, TURN).guess(guess))
+        assert(expected === Game.restore(colors, config, TURN).get.guess(guess))
+      }
+  }
+
+  val incorrectRestoreParameters = Table(
+    ("colors", "config", "turn"),
+    // incorrect guess limit
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, GUESS_LIMIT).get, -1),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, GUESS_LIMIT).get, GUESS_LIMIT),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, GUESS_LIMIT).get, GUESS_LIMIT + 1),
+
+    // incorrect colors
+    (List('A', 'B', 'C', 'D'), GameConfig(3, 6, GUESS_LIMIT).get, TURN),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 3, GUESS_LIMIT).get, TURN)
+  )
+
+  forAll(incorrectRestoreParameters) {
+    (colors: Seq[Char], config: GameConfig, turn: Int) =>
+      it should s"not restore game for invalid parameters: colors: $colors, config: $config, turn: $turn" in {
+        assert(None === Game.restore(colors, config, turn))
       }
   }
 
