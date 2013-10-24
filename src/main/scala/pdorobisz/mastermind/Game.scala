@@ -1,6 +1,7 @@
 package pdorobisz.mastermind
 
 import scala.util.Random
+import scala.collection.mutable.Buffer
 
 
 class Game private(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
@@ -71,8 +72,21 @@ object Game {
     turn >= 0 && (guessLimit == GameConfig.NO_GUESS_LIMIT || turn < guessLimit)
 
   private def validateColors(chars: Seq[Char], config: GameConfig): Boolean =
-    chars.size == config.length && chars.forall(c => c >= GameConfig.FIRST_COLOR && c - GameConfig.FIRST_COLOR < config.numberOfColors)
+    chars.size == config.length &&
+      chars.forall(c => c >= GameConfig.FIRST_COLOR && c - GameConfig.FIRST_COLOR < config.numberOfColors) &&
+      (!config.uniqueColors || chars.distinct.size == chars.size)
 
-  private def generateColors(config: GameConfig): Seq[Char] =
-    Seq.fill(config.length)((GameConfig.FIRST_COLOR + Random.nextInt(config.numberOfColors)).toChar)
+  private def generateColors(config: GameConfig): Seq[Char] = {
+    val availableColors = (GameConfig.FIRST_COLOR until (GameConfig.FIRST_COLOR + config.numberOfColors).toChar).toBuffer
+    Seq.fill(config.length)(getRandomColor(availableColors, config.uniqueColors))
+  }
+
+  private def getRandomColor(colors: Buffer[Char], remove: Boolean): Char = {
+    val index = Random.nextInt(colors.size)
+    if (remove) {
+      colors.remove(index)
+    } else {
+      colors(index)
+    }
+  }
 }

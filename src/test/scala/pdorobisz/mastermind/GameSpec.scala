@@ -11,7 +11,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
 
   "Game" should "be correctly initialized" in {
     Given("configuration")
-    val config = GameConfig(4, 5, GUESS_LIMIT).get
+    val config = GameConfig(4, 5, false, GUESS_LIMIT).get
 
     When("game is initialized with this configuration")
     val game = Game.init(config)
@@ -20,6 +20,20 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     assert(config.length === game.colors.size)
     assert(game.colors.max <= 'A' + config.numberOfColors)
     assert(0 === game.turn)
+  }
+
+  "Game" should "be initialized with unique colors" in {
+    Given("game initialized with two colors and enabled color uniqueness")
+    val config = GameConfig(2, 2, true, GameConfig.NO_GUESS_LIMIT).get
+    val game = Game.init(config)
+
+    When("guesses with different colors are tried")
+    val result1 = game.guess(List('A', 'B'))
+    val result2 = game.guess(List('B', 'A'))
+
+    Then("one of guesses is successful")
+    val success = result1 == Success(1) || result2 == Success(2)
+    assert(true === success)
   }
 
   it should "return correct result when successful guess" in {
@@ -104,7 +118,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
 
   it should "return correct result when invalid colors are passed" in {
     Given("initialized game")
-    val config = GameConfig(4, 6, GUESS_LIMIT).get
+    val config = GameConfig(4, 6, false, GUESS_LIMIT).get
     val game = Game.init(config)
 
     When("invalid colors are passed")
@@ -117,7 +131,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
 
   it should "return correct result when wrong number of colors is passed" in {
     Given("initialized game")
-    val config = GameConfig(4, 6, GUESS_LIMIT).get
+    val config = GameConfig(4, 6, false, GUESS_LIMIT).get
     val game = Game.init(config)
 
     When("too many colors are passed")
@@ -141,7 +155,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   forAll(incorrectGuesses) {
     (colors: Seq[Char], guess: Seq[Char], expected: Answer) =>
       it should s"return $expected for $colors when guess is $guess" in {
-        val config = GameConfig(colors.size, (colors.max max guess.max) + 1 - 'A', GUESS_LIMIT).get
+        val config = GameConfig(colors.size, (colors.max max guess.max) + 1 - 'A', false, GUESS_LIMIT).get
         assert(expected === Game.restore(colors, config, TURN).get.guess(guess))
       }
   }
@@ -149,13 +163,16 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   val incorrectRestoreParameters = Table(
     ("colors", "config", "turn"),
     // incorrect guess limit
-    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, GUESS_LIMIT).get, -1),
-    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, GUESS_LIMIT).get, GUESS_LIMIT),
-    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, GUESS_LIMIT).get, GUESS_LIMIT + 1),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, false, GUESS_LIMIT).get, -1),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, false, GUESS_LIMIT).get, GUESS_LIMIT),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 6, false, GUESS_LIMIT).get, GUESS_LIMIT + 1),
 
     // incorrect colors
-    (List('A', 'B', 'C', 'D'), GameConfig(3, 6, GUESS_LIMIT).get, TURN),
-    (List('A', 'B', 'C', 'D'), GameConfig(4, 3, GUESS_LIMIT).get, TURN)
+    (List('A', 'B', 'C', 'D'), GameConfig(3, 6, false, GUESS_LIMIT).get, TURN),
+    (List('A', 'B', 'C', 'D'), GameConfig(4, 3, false, GUESS_LIMIT).get, TURN),
+
+    // colors not unique
+    (List('A', 'B', 'B', 'A'), GameConfig(4, 4, true, GUESS_LIMIT).get, TURN)
   )
 
   forAll(incorrectRestoreParameters) {
@@ -166,5 +183,5 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
   }
 
   private def createConfigFromColors(colors: Seq[Char]): GameConfig =
-    GameConfig(colors.size, colors.max + 1 - GameConfig.FIRST_COLOR, GUESS_LIMIT).get
+    GameConfig(colors.size, colors.max + 1 - GameConfig.FIRST_COLOR, false, GUESS_LIMIT).get
 }

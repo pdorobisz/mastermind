@@ -13,7 +13,7 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
   "Game configuration" should "be created when correct parameters are given" in {
     Given("valid parameters")
     When("configuration is created")
-    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, VALID_GUESS_LIMIT).get
+    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, false, VALID_GUESS_LIMIT).get
 
     Then("new config object should be created")
     assert(VALID_LENGTH === config.length)
@@ -27,8 +27,8 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
     val invalidLength2 = GameConfig.MAX_LENGTH + 1
 
     When("configuration is created")
-    val config1 = GameConfig(invalidLength1, VALID_NUMBER_OF_COLORS, VALID_GUESS_LIMIT)
-    val config2 = GameConfig(invalidLength2, VALID_NUMBER_OF_COLORS, VALID_GUESS_LIMIT)
+    val config1 = GameConfig(invalidLength1, VALID_NUMBER_OF_COLORS, false, VALID_GUESS_LIMIT)
+    val config2 = GameConfig(invalidLength2, VALID_NUMBER_OF_COLORS, false, VALID_GUESS_LIMIT)
 
     Then("configuration shouldn't be created")
     assert(None === config1)
@@ -41,8 +41,8 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
     val invalidNumberOfColors2 = GameConfig.MAX_NUMBER_OF_COLORS + 1
 
     When("configuration is created")
-    val config1 = GameConfig(VALID_LENGTH, invalidNumberOfColors1, VALID_GUESS_LIMIT)
-    val config2 = GameConfig(VALID_LENGTH, invalidNumberOfColors2, VALID_GUESS_LIMIT)
+    val config1 = GameConfig(VALID_LENGTH, invalidNumberOfColors1, false, VALID_GUESS_LIMIT)
+    val config2 = GameConfig(VALID_LENGTH, invalidNumberOfColors2, false, VALID_GUESS_LIMIT)
 
     Then("configuration shouldn't be created")
     assert(None === config1)
@@ -54,7 +54,19 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
     val invalidGuessLimit = GameConfig.NO_GUESS_LIMIT - 1
 
     When("configuration is created")
-    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, invalidGuessLimit)
+    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, false, invalidGuessLimit)
+
+    Then("configuration shouldn't be created")
+    assert(None === config)
+  }
+
+  it should "validate unique colors" in {
+    Given("length that exceeds available number of colors")
+    val numberOfColors = VALID_LENGTH
+    val length = numberOfColors + 1
+
+    When("configuration with uniqueColors set to true is created")
+    val config = GameConfig(length, numberOfColors, true, VALID_GUESS_LIMIT)
 
     Then("configuration shouldn't be created")
     assert(None === config)
