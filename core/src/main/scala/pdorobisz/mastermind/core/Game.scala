@@ -1,4 +1,4 @@
-package pdorobisz.mastermind
+package pdorobisz.mastermind.core
 
 import scala.util.Random
 import scala.collection.mutable.Buffer

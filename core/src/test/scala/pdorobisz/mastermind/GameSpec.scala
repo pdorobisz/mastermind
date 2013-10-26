@@ -2,6 +2,10 @@ package pdorobisz.mastermind
 
 import org.scalatest.{FlatSpec, GivenWhenThen}
 import org.scalatest.prop.TableDrivenPropertyChecks
+import pdorobisz.mastermind.core._
+import pdorobisz.mastermind.core.GameOver
+import pdorobisz.mastermind.core.Finished
+import pdorobisz.mastermind.core.IllegalArguments
 
 
 class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyChecks {

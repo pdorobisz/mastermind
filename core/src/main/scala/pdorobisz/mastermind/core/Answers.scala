@@ -1,4 +1,4 @@
-package pdorobisz.mastermind
+package pdorobisz.mastermind.core
 
 sealed trait Answer
 

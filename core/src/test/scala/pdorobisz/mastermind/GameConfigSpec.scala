@@ -1,6 +1,7 @@
 package pdorobisz.mastermind
 
 import org.scalatest.{GivenWhenThen, FlatSpec}
+import pdorobisz.mastermind.core.GameConfig
 
 
 class GameConfigSpec extends FlatSpec with GivenWhenThen {

@@ -1,4 +1,4 @@
-package pdorobisz.mastermind
+package pdorobisz.mastermind.core
 
 class GameConfig private(val length: Int, val numberOfColors: Int, val uniqueColors: Boolean, val guessLimit: Int) {
   override def toString() = s"[length: $length, numberOfColors: $numberOfColors, uniqueColors: $uniqueColors, guessLimit: $guessLimit]"
