@@ -26,7 +26,7 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     assert(0 === game.turn)
   }
 
-  "Game" should "be initialized with unique colors" in {
+  it should "be initialized with unique colors" in {
     Given("game initialized with two colors and enabled color uniqueness")
     val config = GameConfig(2, 2, true, GameConfig.NO_GUESS_LIMIT).get
     val game = Game.init(config)
