@@ -14,12 +14,12 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
   "Game configuration" should "be created when correct parameters are given" in {
     Given("valid parameters")
     When("configuration is created")
-    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, false, VALID_GUESS_LIMIT).get
+    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, uniqueColors = false, Some(VALID_GUESS_LIMIT)).get
 
     Then("new config object should be created")
     assert(VALID_LENGTH === config.length)
     assert(VALID_NUMBER_OF_COLORS === config.numberOfColors)
-    assert(VALID_GUESS_LIMIT === config.guessLimit)
+    assert(Some(VALID_GUESS_LIMIT) === config.guessLimit)
   }
 
   it should "validate length" in {
@@ -28,8 +28,8 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
     val invalidLength2 = GameConfig.MAX_LENGTH + 1
 
     When("configuration is created")
-    val config1 = GameConfig(invalidLength1, VALID_NUMBER_OF_COLORS, false, VALID_GUESS_LIMIT)
-    val config2 = GameConfig(invalidLength2, VALID_NUMBER_OF_COLORS, false, VALID_GUESS_LIMIT)
+    val config1 = GameConfig(invalidLength1, VALID_NUMBER_OF_COLORS, uniqueColors = false, Some(VALID_GUESS_LIMIT))
+    val config2 = GameConfig(invalidLength2, VALID_NUMBER_OF_COLORS, uniqueColors = false, Some(VALID_GUESS_LIMIT))
 
     Then("configuration shouldn't be created")
     assert(None === config1)
@@ -42,8 +42,8 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
     val invalidNumberOfColors2 = GameConfig.MAX_NUMBER_OF_COLORS + 1
 
     When("configuration is created")
-    val config1 = GameConfig(VALID_LENGTH, invalidNumberOfColors1, false, VALID_GUESS_LIMIT)
-    val config2 = GameConfig(VALID_LENGTH, invalidNumberOfColors2, false, VALID_GUESS_LIMIT)
+    val config1 = GameConfig(VALID_LENGTH, invalidNumberOfColors1, uniqueColors = false, Some(VALID_GUESS_LIMIT))
+    val config2 = GameConfig(VALID_LENGTH, invalidNumberOfColors2, uniqueColors = false, Some(VALID_GUESS_LIMIT))
 
     Then("configuration shouldn't be created")
     assert(None === config1)
@@ -52,10 +52,10 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
 
   it should "validate guess limit" in {
     Given("invalid guess limit")
-    val invalidGuessLimit = GameConfig.NO_GUESS_LIMIT - 1
+    val invalidGuessLimit = Some(GameConfig.MIN_GUESS_LIMIT - 1)
 
     When("configuration is created")
-    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, false, invalidGuessLimit)
+    val config = GameConfig(VALID_LENGTH, VALID_NUMBER_OF_COLORS, uniqueColors = false, invalidGuessLimit)
 
     Then("configuration shouldn't be created")
     assert(None === config)
@@ -67,7 +67,7 @@ class GameConfigSpec extends FlatSpec with GivenWhenThen {
     val length = numberOfColors + 1
 
     When("configuration with uniqueColors set to true is created")
-    val config = GameConfig(length, numberOfColors, true, VALID_GUESS_LIMIT)
+    val config = GameConfig(length, numberOfColors, uniqueColors = true, Some(VALID_GUESS_LIMIT))
 
     Then("configuration shouldn't be created")
     assert(None === config)

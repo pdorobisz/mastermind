@@ -8,8 +8,8 @@ import scala.annotation.tailrec
 object Runner {
 
   def main(args: Array[String]) {
-    val config: GameConfig = GameConfig(4, 6, false, GameConfig.NO_GUESS_LIMIT).get
-    val game = Game.init(config)
+    val config: GameConfig = GameConfig(4, 6, uniqueColors = false, None).get
+    val game = Game(config)
     play(game)
   }
 

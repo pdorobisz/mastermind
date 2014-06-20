@@ -1,45 +1,46 @@
 package pdorobisz.mastermind.core
 
 import scala.util.Random
-import scala.collection.mutable.Buffer
+import scala.collection.mutable
 
 
 class Game private(_colors: Seq[Char], val config: GameConfig, private var _turn: Int) {
 
-  val colors = _colors.map(_.toUpper)
+  val colorsToGuess = _colors map (_.toUpper)
   private var finished = false
 
-  def guess(guessColors: Seq[Char]): Answer = {
-    val guessColors1 = guessColors.map(_.toUpper)
+  def guess(colors: Seq[Char]): Answer = {
+    val guessColors = colors map (_.toUpper)
 
-    if (finished) {
+    if (finished)
       return Finished(_turn)
-    } else if (!validateColors(guessColors1) || !validateLength(guessColors1)) {
+    else if (!validateColors(guessColors) || !validateLength(guessColors))
       return IllegalArguments(_turn)
-    }
 
     _turn += 1
-    val (remainingColors, remainingGuessColors) = colors.zip(guessColors1).filter { case (x, y) => x != y }.unzip
+    val (colorsNotGuessed, incorrectColors) = (colorsToGuess zip guessColors filter {
+      case (x, y) => x != y
+    }).unzip
 
-    if (remainingGuessColors.size == 0) {
+    if (incorrectColors.size == 0) {
       finished = true
       Success(_turn)
-    } else if (_turn != GameConfig.NO_GUESS_LIMIT && _turn == config.guessLimit) {
+    } else if (config.guessLimit.isDefined && _turn == config.guessLimit.get) {
       finished = true
       GameOver(_turn)
     } else {
-      val posOk: Int = guessColors1.size - remainingGuessColors.size
-      val colorOk: Int = remainingColors.size - remainingColors.diff(remainingGuessColors).size
+      val posOk: Int = guessColors.size - incorrectColors.size
+      val colorOk: Int = colorsNotGuessed.size - (colorsNotGuessed diff incorrectColors).size
       Incorrect(_turn, posOk, colorOk)
     }
   }
 
-  def turn = _turn
+  def turn: Int = _turn
 
   private def validateColors(guessColors: Seq[Char]): Boolean =
-    guessColors.find(_ > GameConfig.FIRST_COLOR + config.numberOfColors - 1).isEmpty
+    guessColors forall (_ <= GameConfig.FIRST_COLOR + config.numberOfColors - 1)
 
-  private def validateLength(guessColors: Seq[Char]): Boolean = guessColors.size == colors.size
+  private def validateLength(guessColors: Seq[Char]): Boolean = guessColors.size == colorsToGuess.size
 }
 
 object Game {
@@ -50,7 +51,7 @@ object Game {
    * @param config game config
    * @return game object
    */
-  def init(config: GameConfig): Game = new Game(generateColors(config), config, 0)
+  def apply(config: GameConfig): Game = new Game(generateColors(config), config, 0)
 
 
   /**
@@ -68,12 +69,11 @@ object Game {
       None
     }
 
-  private def validateTurn(turn: Int, guessLimit: Int) =
-    turn >= 0 && (guessLimit == GameConfig.NO_GUESS_LIMIT || turn < guessLimit)
+  private def validateTurn(turn: Int, guessLimit: Option[Int]) = turn >= 0 && (guessLimit.isEmpty || turn < guessLimit.get)
 
   private def validateColors(chars: Seq[Char], config: GameConfig): Boolean =
     chars.size == config.length &&
-      chars.forall(c => c >= GameConfig.FIRST_COLOR && c - GameConfig.FIRST_COLOR < config.numberOfColors) &&
+      (chars forall (c => c >= GameConfig.FIRST_COLOR && c - GameConfig.FIRST_COLOR < config.numberOfColors)) &&
       (!config.uniqueColors || chars.distinct.size == chars.size)
 
   private def generateColors(config: GameConfig): Seq[Char] = {
@@ -81,12 +81,8 @@ object Game {
     Seq.fill(config.length)(getRandomColor(availableColors, config.uniqueColors))
   }
 
-  private def getRandomColor(colors: Buffer[Char], remove: Boolean): Char = {
+  private def getRandomColor(colors: mutable.Buffer[Char], remove: Boolean): Char = {
     val index = Random.nextInt(colors.size)
-    if (remove) {
-      colors.remove(index)
-    } else {
-      colors(index)
-    }
+    if (remove) colors.remove(index) else colors(index)
   }
 }
