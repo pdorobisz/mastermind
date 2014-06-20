@@ -21,9 +21,26 @@ class GameSpec extends FlatSpec with GivenWhenThen with TableDrivenPropertyCheck
     val game = Game(config)
 
     Then("new game should be created")
+    assert(config === game.config)
     assert(config.length === game.colorsToGuess.size)
     assert(game.colorsToGuess.max <= 'A' + config.numberOfColors)
     assert(0 === game.turn)
+  }
+
+  it should "be correctly restored" in {
+    Given("configuration to restore")
+    val colorsToRestore = List('A', 'B', 'A', 'C', 'C', 'D', 'A')
+    val configToRestore = createConfigFromColors(colorsToRestore)
+    val turnToRestore = 5
+
+    When("game is restored")
+    val game = Game.restore(colorsToRestore, configToRestore, turnToRestore).get
+
+    Then("restored game should be created")
+    assert(configToRestore === game.config)
+    assert(configToRestore.length === game.colorsToGuess.size)
+    assert(game.colorsToGuess.max <= 'A' + configToRestore.numberOfColors)
+    assert(turnToRestore === game.turn)
   }
 
   it should "be initialized with unique colors" in {
